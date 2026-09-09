@@ -67,19 +67,20 @@ Important: the second and third inputs must be the actual QR images. Small
 screenshots containing only the caption text are not QR inputs; use
 `--card1-value` and `--card2-value` to define those names instead.
 
-## XHS acquisition script
+## Mobile portrait QR script
 
-Use `embed_xhs_qr.py` when the graphic is intended for Xiaohongshu customer
-acquisition. One QR code is highlighted; two to four QR images use a compact
-grid automatically:
+Use `embed_xhs_qr.py` for a mobile portrait graphic with two QR codes at the
+bottom:
 
 ```bash
-python3 embed_xhs_qr.py background.png qr.png \
-  --card1-title 小红书获客 \
+python3 embed_xhs_qr.py portrait-background.png qr1.png qr2.png \
+  --orientation portrait \
   --card1-value Xconnect-支持群 \
-  --output xhs_qr.png
+  --card2-value AI-Native-交流群 \
+  --output portrait_qr.png
 ```
 
-For future QR destinations, append more actual QR image paths and define
-`--card1-value` through `--card4-value`. The QR data is not regenerated or
-changed by the script.
+The two QR images remain side by side and the output only displays the two
+configured group names. For future expansion, append a third or fourth actual
+QR image and define `--card3-value` or `--card4-value`. The QR data is not
+regenerated or changed by the script.

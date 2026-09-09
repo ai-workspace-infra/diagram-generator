@@ -24,7 +24,8 @@ from embed_qr_codes import (
 # Default panel matches the right-hand QR-card area of the current 2564 x 902
 # promotional background.
 DEFAULT_PANEL_BOX = (0.706, 0.210, 0.279, 0.465)
-DEFAULT_TITLES = ("小红书获客", "小红书获客", "小红书获客", "小红书获客")
+DEFAULT_PORTRAIT_PANEL_BOX = (0.028, 0.783, 0.944, 0.190)
+DEFAULT_TITLES = ("", "", "", "")
 DEFAULT_VALUES = (
     "Xconnect-支持群",
     "AI-Native-交流群",
@@ -150,6 +151,36 @@ def draw_multi_panel(
         draw.text((cell_x + (cell_width - value_width) // 2, cell_y + round(cell_height * 0.80)), value, fill=(17, 45, 105, 255), font=value_font)
 
 
+def draw_portrait_two_panel(
+    canvas: Image.Image,
+    box: tuple[int, int, int, int],
+    qrs: list[Image.Image],
+    texts: list[tuple[str, str]],
+    font_path: str | None,
+) -> None:
+    """Use the wide bottom card of the portrait template for two QR codes."""
+    x, y, width, height = box
+    draw_panel_background(canvas, box)
+    cell_width = width // 2
+    draw = ImageDraw.Draw(canvas)
+    qr_size = min(round(height * 0.68), round(cell_width * 0.66))
+    for index, (qr, (title, value)) in enumerate(zip(qrs, texts)):
+        cell_x = x + index * cell_width
+        qr_x = cell_x + (cell_width - qr_size) // 2
+        qr_y = y + 12
+        canvas.alpha_composite(fit_qr_crisp(qr, (qr_size, qr_size)), (qr_x, qr_y))
+        value_font = fit_font(draw, value, font_path, max(11, round(height * 0.070)), cell_width - 18)
+        value_width = draw.textbbox((0, 0), value, font=value_font)[2]
+        if title:
+            title_font = fit_font(draw, title, font_path, max(13, round(height * 0.090)), cell_width - 18)
+            title_width = draw.textbbox((0, 0), title, font=title_font)[2]
+            draw.text((cell_x + (cell_width - title_width) // 2, y + round(height * 0.71)), title, fill=(17, 45, 105, 255), font=title_font)
+            value_y = y + round(height * 0.86)
+        else:
+            value_y = y + round(height * 0.76)
+        draw.text((cell_x + (cell_width - value_width) // 2, value_y), value, fill=(17, 45, 105, 255), font=value_font)
+
+
 def make_xhs_graphic(
     template_path: Path,
     qr_paths: list[Path],
@@ -157,6 +188,7 @@ def make_xhs_graphic(
     panel_box: tuple[int, int, int, int] | None = None,
     titles: list[str] | None = None,
     values: list[str] | None = None,
+    orientation: str = "auto",
     font_path: str | None = None,
     auto_crop: bool = True,
 ) -> None:
@@ -164,7 +196,8 @@ def make_xhs_graphic(
         raise ValueError("Use between one and four QR images")
     with Image.open(template_path) as source:
         canvas = source.convert("RGBA")
-    box = panel_box or fractional_box(canvas.size, DEFAULT_PANEL_BOX)
+    is_portrait = orientation == "portrait" or (orientation == "auto" and canvas.height > canvas.width)
+    box = panel_box or fractional_box(canvas.size, DEFAULT_PORTRAIT_PANEL_BOX if is_portrait else DEFAULT_PANEL_BOX)
     x, y, width, height = box
     if x < 0 or y < 0 or width <= 0 or height <= 0 or x + width > canvas.width or y + height > canvas.height:
         raise ValueError(f"Panel position is outside the template: {x},{y},{width},{height}")
@@ -185,6 +218,8 @@ def make_xhs_graphic(
 
     if len(qrs) == 1:
         draw_single_panel(canvas, box, qrs[0], texts[0][0], texts[0][1], font_path)
+    elif is_portrait and len(qrs) == 2:
+        draw_portrait_two_panel(canvas, box, qrs, texts, font_path)
     else:
         draw_multi_panel(canvas, box, qrs, texts, font_path)
 
@@ -200,6 +235,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("template", type=Path, help="Template/background image")
     parser.add_argument("qr_images", nargs="+", type=Path, help="One to four actual QR code images")
     parser.add_argument("-o", "--output", type=Path, default=Path("xhs_qr.png"))
+    parser.add_argument("--orientation", choices=("auto", "landscape", "portrait"), default="auto", help="Choose the default panel layout")
     parser.add_argument("--panel-box", type=parse_box, help="Acquisition panel: x,y,width,height")
     for index in range(1, 5):
         parser.add_argument(f"--card{index}-title", default=None, help=f"Card {index} title")
@@ -229,6 +265,7 @@ def main() -> None:
             panel_box=args.panel_box,
             titles=titles,
             values=values,
+            orientation=args.orientation,
             font_path=args.font_path,
             auto_crop=not args.no_auto_crop,
         )
