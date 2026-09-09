@@ -53,3 +53,16 @@ python3 embed_qr_codes.py background.png qr1.png qr2.png \
 ```
 
 If the QR files are already cropped to the QR subject, add `--no-auto-crop`.
+
+The card captions are configurable as well. By default, the two cards are
+labelled `Xconnect-支持群` and `AI-Native-交流群`:
+
+```bash
+python3 embed_qr_codes.py background.png qr1.png qr2.png \
+  --card1-title 群聊 --card1-value Xconnect-支持群 \
+  --card2-title 群聊 --card2-value AI-Native-交流群 \
+  --output qr_composite.png
+```
+
+Use `--font /path/to/font.ttc` when a custom font is needed. Use `--text1-box`
+and `--text2-box` to move or resize the caption areas for a different template.
