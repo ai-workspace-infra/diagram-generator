@@ -2,6 +2,8 @@
 
 This tool provides an automated, stable way to generate the "Open Platform Toolkit" multi-cloud delivery architecture diagram.
 
+For the shortest setup and QR-code usage guide, see [TL;DR](TLDR.md).
+
 Instead of manually editing shapes in a drawing tool, you modify the `config.yaml` file and run the Python script to render a pixel-perfect, high-resolution PNG using Web technologies (HTML/Tailwind CSS) and Playwright.
 
 ## Prerequisites
