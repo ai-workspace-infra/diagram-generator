@@ -28,3 +28,28 @@ This will read `config.yaml`, inject it into `template.html`, and capture a high
 - **Change Text**: Edit `config.yaml`.
 - **Change Colors**: Modify the `color` property under `hexagons.ring` in `config.yaml`. It uses Tailwind CSS gradient classes (e.g., `from-blue-500 to-cyan-400`).
 - **Layout Tweaks**: If you want to change the size, spacing, or add real image icons, you can edit `template.html`.
+
+## Embedding Dynamic QR Codes
+
+Use `embed_qr_codes.py` when the same promotional background needs updated QR
+code images. It automatically crops title text above the supplied QR codes,
+preserves the QR aspect ratio, and places the codes in the two card positions
+used by the supplied 2564 x 902 background:
+
+```bash
+python3 embed_qr_codes.py background.png qr-group.png qr-ai-native.png \
+  --output qr_composite.png
+```
+
+The default positions are calculated as proportions of the background size.
+For a different template, override the positions with pixel boxes in the form
+`x,y,width,height`:
+
+```bash
+python3 embed_qr_codes.py background.png qr1.png qr2.png \
+  --qr1-box 1915,295,155,155 \
+  --qr2-box 2263,295,155,155 \
+  --output qr_composite.png
+```
+
+If the QR files are already cropped to the QR subject, add `--no-auto-crop`.
