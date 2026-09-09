@@ -68,3 +68,20 @@ python3 embed_qr_codes.py background.png qr1.png qr2.png \
 
 Use `--font /path/to/font.ttc` when a custom font is needed. Use `--text1-box`
 and `--text2-box` to move or resize the caption areas for a different template.
+
+## XHS Acquisition QR
+
+For Xiaohongshu (XHS) acquisition, use the dedicated script. With one QR code,
+the code is shown in a larger highlighted panel:
+
+```bash
+python3 embed_xhs_qr.py background.png qr.png \
+  --card1-title 小红书获客 \
+  --card1-value Xconnect-支持群 \
+  --output xhs_qr.png
+```
+
+Pass two to four QR images after the background to switch automatically to a
+compact multi-card layout. Use `--card1-value` through `--card4-value` to name
+each acquisition destination, and `--panel-box x,y,width,height` to reposition
+the whole panel.

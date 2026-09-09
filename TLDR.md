@@ -66,3 +66,20 @@ Use `--font /path/to/font.ttc` for a specific font and
 Important: the second and third inputs must be the actual QR images. Small
 screenshots containing only the caption text are not QR inputs; use
 `--card1-value` and `--card2-value` to define those names instead.
+
+## XHS acquisition script
+
+Use `embed_xhs_qr.py` when the graphic is intended for Xiaohongshu customer
+acquisition. One QR code is highlighted; two to four QR images use a compact
+grid automatically:
+
+```bash
+python3 embed_xhs_qr.py background.png qr.png \
+  --card1-title 小红书获客 \
+  --card1-value Xconnect-支持群 \
+  --output xhs_qr.png
+```
+
+For future QR destinations, append more actual QR image paths and define
+`--card1-value` through `--card4-value`. The QR data is not regenerated or
+changed by the script.
