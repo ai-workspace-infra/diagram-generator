@@ -24,7 +24,9 @@ from embed_qr_codes import (
 # Default panel matches the right-hand QR-card area of the current 2564 x 902
 # promotional background.
 DEFAULT_PANEL_BOX = (0.706, 0.210, 0.279, 0.465)
-DEFAULT_PORTRAIT_PANEL_BOX = (0.028, 0.783, 0.944, 0.190)
+# The QR panel intentionally occupies the lower third of the portrait so the
+# two QR codes remain the primary visual subject on a phone screen.
+DEFAULT_PORTRAIT_PANEL_BOX = (0.028, 0.637, 0.944, 0.340)
 DEFAULT_TITLES = ("", "", "", "")
 DEFAULT_VALUES = (
     "Xconnect-支持群",
