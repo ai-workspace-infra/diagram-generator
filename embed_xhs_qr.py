@@ -24,7 +24,9 @@ from embed_qr_codes import (
 # Default panel matches the right-hand QR-card area of the current 2564 x 902
 # promotional background.
 DEFAULT_PANEL_BOX = (0.706, 0.210, 0.279, 0.465)
-DEFAULT_PORTRAIT_PANEL_BOX = (0.028, 0.783, 0.944, 0.190)
+# The QR panel intentionally occupies the lower third of the portrait so the
+# two QR codes remain the primary visual subject on a phone screen.
+DEFAULT_PORTRAIT_PANEL_BOX = (0.028, 0.637, 0.944, 0.340)
 DEFAULT_TITLES = ("", "", "", "")
 DEFAULT_VALUES = (
     "Xconnect-支持群",
@@ -57,6 +59,43 @@ def fit_qr_crisp(qr: Image.Image, size: tuple[int, int]) -> Image.Image:
         ((target_width - resized.width) // 2, (target_height - resized.height) // 2),
     )
     return fitted
+
+
+def crop_xhs_qr_subject(image: Image.Image, auto_crop: bool = True) -> Image.Image:
+    """Extract the QR from a tall phone screenshot, then use normal cropping."""
+    image = image.convert("RGBA")
+    if not auto_crop:
+        return image
+
+    # XHS/WeChat-style screenshots are much taller than they are wide. Their
+    # QR code is the large dark square in the middle, below the group title and
+    # above the expiry note.
+    if image.height > image.width * 1.5:
+        pixels = image.load()
+        xs: list[int] = []
+        ys: list[int] = []
+        # Start below the screenshot's group title and stop before the expiry note.
+        for y in range(round(image.height * 0.36), round(image.height * 0.66)):
+            for x in range(image.width):
+                red, green, blue, alpha = pixels[x, y]
+                if alpha > 20 and min(red, green, blue) < 80:
+                    xs.append(x)
+                    ys.append(y)
+        if xs:
+            left, top, right, bottom = min(xs), min(ys), max(xs) + 1, max(ys) + 1
+            width = right - left
+            height = bottom - top
+            if width > image.width * 0.35 and height > image.height * 0.18 and abs(width - height) < image.width * 0.12:
+                side = max(width, height)
+                margin = max(8, round(side * 0.025))
+                side += margin * 2
+                center_x = (left + right) / 2
+                center_y = (top + bottom) / 2
+                crop_left = max(0, min(round(center_x - side / 2), image.width - side))
+                crop_top = max(0, min(round(center_y - side / 2), image.height - side))
+                return image.crop((crop_left, crop_top, crop_left + side, crop_top + side))
+
+    return crop_qr_subject(image, auto_crop=True)
 
 
 def draw_panel_background(canvas: Image.Image, box: tuple[int, int, int, int]) -> None:
@@ -214,7 +253,7 @@ def make_xhs_graphic(
     qrs: list[Image.Image] = []
     for path in qr_paths:
         with Image.open(path) as source_qr:
-            qrs.append(crop_qr_subject(source_qr, auto_crop=auto_crop))
+            qrs.append(crop_xhs_qr_subject(source_qr, auto_crop=auto_crop))
 
     if len(qrs) == 1:
         draw_single_panel(canvas, box, qrs[0], texts[0][0], texts[0][1], font_path)
