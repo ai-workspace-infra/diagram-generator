@@ -35,8 +35,18 @@ This will read `config.yaml`, inject it into `template.html`, and capture a high
 
 Use `embed_qr_codes.py` when the same promotional background needs updated QR
 code images. It automatically crops title text above the supplied QR codes,
-preserves the QR aspect ratio, and places the codes in the two card positions
-used by the supplied 2564 x 902 background:
+preserves the QR aspect ratio, and places one or two codes in the card
+positions used by the supplied 2564 x 902 background:
+
+For the long-term `XWorktech 小助理` entry, pass only the assistant QR. It uses
+the right-hand card position and leaves one QR entry point. `--qr-only` keeps
+the image free of captions so the guidance can live in the article copy:
+
+```bash
+python3 embed_qr_codes.py background.png assistant-qr.png \
+  --qr-only \
+  --output assistant-banner.png
+```
 
 ```bash
 python3 embed_qr_codes.py background.png qr-group.png qr-ai-native.png \
@@ -71,9 +81,19 @@ and `--text2-box` to move or resize the caption areas for a different template.
 
 ## XHS Acquisition QR
 
-For a mobile portrait graphic, use the dedicated script. With two QR codes and
-`--orientation portrait`, the original codes are placed side by side in the
-bottom panel:
+For a mobile portrait graphic, use the dedicated script. For the assistant
+entry point, pass one QR image so the portrait contains one prominent,
+centered code. `--qr-only` removes all extra copy:
+
+```bash
+python3 embed_xhs_qr.py portrait-background.png assistant-qr.png \
+  --orientation portrait \
+  --qr-only \
+  --output assistant-portrait.png
+```
+
+With two QR codes and `--orientation portrait`, the original codes are placed
+side by side in the bottom panel:
 
 ```bash
 python3 embed_xhs_qr.py portrait-background.png qr1.png qr2.png \

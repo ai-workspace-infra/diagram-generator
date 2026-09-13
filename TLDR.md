@@ -63,14 +63,33 @@ python3 embed_qr_codes.py background.png qr1.png qr2.png \
 Use `--font /path/to/font.ttc` for a specific font and
 `--no-auto-crop` when the QR files are already cropped to the QR subject.
 
+For the official assistant account, use one QR input. The single code is
+placed in the right-hand card position. Add `--qr-only` to keep the image
+focused on the QR code and put all guidance in the article copy:
+
+```bash
+python3 embed_qr_codes.py background.png assistant-qr.png \
+  --qr-only \
+  --output assistant-banner.png
+```
+
 Important: the second and third inputs must be the actual QR images. Small
 screenshots containing only the caption text are not QR inputs; use
 `--card1-value` and `--card2-value` to define those names instead.
 
 ## Mobile portrait QR script
 
-Use `embed_xhs_qr.py` for a mobile portrait graphic with two QR codes at the
-bottom:
+Use `embed_xhs_qr.py` for a mobile portrait graphic. The assistant version
+keeps one centered QR code position and no extra copy:
+
+```bash
+python3 embed_xhs_qr.py portrait-background.png assistant-qr.png \
+  --orientation portrait \
+  --qr-only \
+  --output assistant-portrait.png
+```
+
+For the two-group version, use two QR codes at the bottom:
 
 ```bash
 python3 embed_xhs_qr.py portrait-background.png qr1.png qr2.png \

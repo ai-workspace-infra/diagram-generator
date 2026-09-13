@@ -70,7 +70,7 @@ def crop_xhs_qr_subject(image: Image.Image, auto_crop: bool = True) -> Image.Ima
     # XHS/WeChat-style screenshots are much taller than they are wide. Their
     # QR code is the large dark square in the middle, below the group title and
     # above the expiry note.
-    if image.height > image.width * 1.5:
+    if image.height > image.width * 1.35:
         pixels = image.load()
         xs: list[int] = []
         ys: list[int] = []
@@ -220,6 +220,50 @@ def draw_portrait_two_panel(
         draw.text((cell_x + (cell_width - value_width) // 2, value_y), value, fill=(17, 45, 105, 255), font=value_font)
 
 
+def draw_qr_only_panel(
+    canvas: Image.Image,
+    box: tuple[int, int, int, int],
+    qr: Image.Image,
+) -> None:
+    """Draw one clean portrait QR card without extra copy."""
+    x, y, width, height = box
+    draw_panel_background(canvas, box)
+    qr_size = min(round(height * 0.84), round(width * 0.70))
+    canvas.alpha_composite(
+        fit_qr_crisp(qr, (qr_size, qr_size)),
+        (x + (width - qr_size) // 2, y + (height - qr_size) // 2),
+    )
+
+
+def draw_portrait_single_panel(
+    canvas: Image.Image,
+    box: tuple[int, int, int, int],
+    qr: Image.Image,
+    title: str,
+    value: str,
+    font_path: str | None,
+) -> None:
+    """Draw one centered portrait QR with a short message beneath it."""
+    x, y, width, height = box
+    draw_panel_background(canvas, box)
+    draw = ImageDraw.Draw(canvas)
+    qr_size = min(round(height * 0.65), round(width * 0.64))
+    qr_y = y + round(height * 0.07)
+    canvas.alpha_composite(
+        fit_qr_crisp(qr, (qr_size, qr_size)),
+        (x + (width - qr_size) // 2, qr_y),
+    )
+    center_x = x + width // 2
+    title_font = fit_font(draw, title, font_path, max(14, round(height * 0.075)), width - 40)
+    value_font = fit_font(draw, value, font_path, max(12, round(height * 0.060)), width - 40)
+    for text, font, top in (
+        (title, title_font, y + round(height * 0.75)),
+        (value, value_font, y + round(height * 0.86)),
+    ):
+        text_width = draw.textbbox((0, 0), text, font=font)[2]
+        draw.text((center_x - text_width // 2, top), text, fill=(17, 45, 105, 255), font=font)
+
+
 def make_xhs_graphic(
     template_path: Path,
     qr_paths: list[Path],
@@ -230,6 +274,7 @@ def make_xhs_graphic(
     orientation: str = "auto",
     font_path: str | None = None,
     auto_crop: bool = True,
+    qr_only: bool = False,
 ) -> None:
     if not 1 <= len(qr_paths) <= 4:
         raise ValueError("Use between one and four QR images")
@@ -255,8 +300,10 @@ def make_xhs_graphic(
         with Image.open(path) as source_qr:
             qrs.append(crop_xhs_qr_subject(source_qr, auto_crop=auto_crop))
 
-    if len(qrs) == 1:
-        draw_single_panel(canvas, box, qrs[0], texts[0][0], texts[0][1], font_path)
+    if len(qrs) == 1 and qr_only:
+        draw_qr_only_panel(canvas, box, qrs[0])
+    elif len(qrs) == 1:
+        draw_portrait_single_panel(canvas, box, qrs[0], texts[0][0], texts[0][1], font_path)
     elif is_portrait and len(qrs) == 2:
         draw_portrait_two_panel(canvas, box, qrs, texts, font_path)
     else:
@@ -281,6 +328,7 @@ def build_parser() -> argparse.ArgumentParser:
         parser.add_argument(f"--card{index}-value", default=None, help=f"Card {index} value/name")
     parser.add_argument("--font", dest="font_path", help="Font file for Chinese captions")
     parser.add_argument("--no-auto-crop", action="store_true", help="Do not remove title text above QR images")
+    parser.add_argument("--qr-only", action="store_true", help="Use one clean QR card without captions or promotional copy")
     return parser
 
 
@@ -307,6 +355,7 @@ def main() -> None:
             orientation=args.orientation,
             font_path=args.font_path,
             auto_crop=not args.no_auto_crop,
+            qr_only=args.qr_only,
         )
     except Exception as exc:
         raise SystemExit(f"Failed to create XHS graphic: {exc}") from exc
