@@ -103,3 +103,16 @@ The two QR images remain side by side and the output only displays the two
 configured group names. For future expansion, append a third or fourth actual
 QR image and define `--card3-value` or `--card4-value`. The QR data is not
 regenerated or changed by the script.
+
+## XHS product marketing series
+
+Generate four consistent 1080 × 1440 portrait images: solution matrix,
+XWorkmate, XConnect, and AI Workspace.
+
+```bash
+python3 create_xhs_marketing_series.py \
+  --output-dir xhs_marketing_series
+```
+
+The series contains no QR code or acquisition copy; use the assistant QR
+layout separately as the final contact page when needed.
